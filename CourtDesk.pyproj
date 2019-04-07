@@ -91,7 +91,7 @@
     <Content Include="app\templates\app\loginpartial.html" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="readme.html">
+    <None Include="django-default.html">
       <SubType>WebBrowser</SubType>
     </None>
   </ItemGroup>
