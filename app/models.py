@@ -73,6 +73,7 @@ class Legislature(models.Model):
 class CaseFile(models.Model):
     case_number = models.CharField(max_length=20)
     next_date_of_hearing = models.DateField()
+    last_date_of_hearing = models.DateField()
     court_room = models.ForeignKey(CourtRoom,on_delete = models.CASCADE)
     file = models.FileField(upload_to='files/casefiles/',null = True)
     case_laws = models.ManyToManyField(CaseLaw)
@@ -82,6 +83,9 @@ class CaseFile(models.Model):
     matter = models.CharField(max_length=30,default="N.A.")
     petitioner_advocate = models.CharField(max_length=30,default="N.A.")
     respondant_advocate = models.CharField(max_length=30,default="N.A.")
+    party = models.CharField(max_length=30,default="N.A.")
+
+    notes = models.CharField(max_length=300,default="N.A.")
 
     CASETYPE_CHOICES = (
     ("SUPPLEMENTARY", "Supplementary"),
