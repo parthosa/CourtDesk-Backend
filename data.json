@@ -1,0 +1,153 @@
+[
+  {
+    "model": "app.permission",
+    "pk": "CS",
+    "fields": {
+      "view_peshi": true,
+      "edit_peshi": true,
+      "edit_casefile": false
+    }
+  },
+  {
+    "model": "app.permission",
+    "pk": "Judge",
+    "fields": {
+      "view_peshi": true,
+      "edit_peshi": true,
+      "edit_casefile": true
+    }
+  },
+  {
+    "model": "app.permission",
+    "pk": "LR",
+    "fields": {
+      "view_peshi": true,
+      "edit_peshi": false,
+      "edit_casefile": true
+    }
+  },
+  {
+    "model": "app.lr",
+    "pk": 1,
+    "fields": {
+      "name": "Rakesh",
+      "user": 3,
+      "permissions": "LR"
+    }
+  },
+  {
+    "model": "app.courtstaff",
+    "pk": 1,
+    "fields": {
+      "name": "Ashish",
+      "user": 4,
+      "permissions": "CS"
+    }
+  },
+  {
+    "model": "app.courtstaff",
+    "pk": 2,
+    "fields": {
+      "name": "Ramish",
+      "user": 6,
+      "permissions": "CS"
+    }
+  },
+  {
+    "model": "app.judge",
+    "pk": 1,
+    "fields": {
+      "name": "HMJ Raghubeer",
+      "user": 2,
+      "permissions": "Judge",
+      "lr": [
+        1
+      ],
+      "court_staff": [
+        1
+      ]
+    }
+  },
+  {
+    "model": "app.judge",
+    "pk": 2,
+    "fields": {
+      "name": "HMJ SM",
+      "user": 5,
+      "permissions": "Judge",
+      "lr": [
+        1
+      ],
+      "court_staff": [
+        2
+      ]
+    }
+  },
+  {
+    "model": "app.court",
+    "pk": "DelhiHighCourt",
+    "fields": {
+
+    }
+  },
+  {
+    "model": "app.courtroom",
+    "pk": 1,
+    "fields": {
+      "number": 1,
+      "court": "DelhiHighCourt",
+      "judges": [
+        1
+      ]
+    }
+  },
+  {
+    "model": "app.courtroom",
+    "pk": 2,
+    "fields": {
+      "number": 2,
+      "court": "DelhiHighCourt",
+      "judges": [
+        1,
+        2
+      ]
+    }
+  },
+  {
+    "model": "app.caselaw",
+    "pk": 1,
+    "fields": {
+      "name": "Mani Bai",
+      "file": "files/caselaws/CS_F211_1094_YELlW1R.pdf"
+    }
+  },
+  {
+    "model": "app.legislature",
+    "pk": 1,
+    "fields": {
+      "name": "Securitisation-Act",
+      "file": "files/legislatures/CS_F211_1094.pdf"
+    }
+  },
+  {
+    "model": "app.casefile",
+    "pk": 1,
+    "fields": {
+      "case_number": "CM(M) 671 of 2016",
+      "next_date_of_hearing": "2019-04-27",
+      "court_room": 1,
+      "file": "files/casefiles/CS_F211_1094.pdf",
+      "peshi": "files/peshi/Court_Desk_Tech_Timeline.pdf",
+      "matter": "N.A.",
+      "petitioner_advocate": "N.A.",
+      "respondant_advocate": "N.A.",
+      "case_type": "SUPPLEMENTARY",
+      "case_laws": [
+        1
+      ],
+      "legislatures": [
+        1
+      ]
+    }
+  }
+]

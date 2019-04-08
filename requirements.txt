@@ -1,1 +1,8 @@
-django >= 2.1, < 3.0
+certifi==2019.3.9
+Django==2.2
+pip==19.0.3
+pytz==2018.9
+setuptools==40.8.0
+sqlparse==0.3.0
+wheel==0.33.1
+wincertstore==0.2

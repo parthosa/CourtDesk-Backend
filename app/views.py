@@ -26,10 +26,10 @@ def login_user(request):
 @csrf_exempt
 def get_courtrooms(request):
     if request.method == "POST":
-        session_key = request.POST["session_key"]
-        session = Session.objects.get(session_key = session_key)
-        uid = session.get_decoded().get('_auth_user_id')
         try:
+            session_key = request.POST['session_key']
+            session = Session.objects.get(session_key = session_key)
+            uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
         except:
             return JsonResponse({'status':0, 'message':'Kindly login first'})
@@ -47,8 +47,15 @@ def get_courtrooms(request):
 
 @csrf_exempt
 def logout_user(request):
-	logout(request)
-	return JsonResponse({'status': 1, 'message': 'You have been successfully logged out'})
+    logout(request)
+    try:
+        session_key = request.POST['session_key']
+        session = Session.objects.get(session_key = session_key)
+        session.delete()
+    except:
+        return JsonResponse({'status': 1, 'message': 'No user was logged in'})
+
+    return JsonResponse({'status': 1, 'message': 'You have been successfully logged out'})
 
 def getUserProfile(user):
     if user:
