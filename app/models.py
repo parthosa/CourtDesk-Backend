@@ -3,8 +3,10 @@ Definition of models.
 """
 
 from django.db import models
-
+from django.contrib.auth.models import User
 # Create your models here.
+
+
 
 class Permission(models.Model):
     name = models.CharField(max_length=20,primary_key=True)
@@ -16,29 +18,26 @@ class Permission(models.Model):
         return self.name
 
 
-
-
-class LR(models.Model):
+class UserProfile(models.Model):
     name = models.CharField(max_length=20)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.name
+
+
+class LR(UserProfile):
     permissions = models.ForeignKey(Permission,on_delete=models.CASCADE,default="LR")
-    def __str__(self):
-        return self.name
 
-
-class CourtStaff(models.Model):
-    name = models.CharField(max_length=20)
+class CourtStaff(UserProfile):
     permissions = models.ForeignKey(Permission,on_delete=models.CASCADE,default="CS")
-    def __str__(self):
-        return self.name
 
-class Judge(models.Model):
-    name = models.CharField(max_length=20)
+class Judge(UserProfile):
     permissions = models.ForeignKey(Permission,on_delete=models.CASCADE,default="JUDGE")
     lr = models.ManyToManyField(LR)
     court_staff = models.ManyToManyField(CourtStaff)
-
-    def __str__(self):
-        return self.name
 
 class Court(models.Model):
     name = models.CharField(max_length=15,primary_key=True)
@@ -55,11 +54,28 @@ class CourtRoom(models.Model):
     def __str__(self):
         return self.court.name + "-" + str(self.number)
 
+class CaseLaw(models.Model):
+    name = models.CharField(max_length=20)
+    file = models.FileField(upload_to='files/caselaws/',null = True)
+
+    def __str__(self):
+        return self.name
+
+class Legislature(models.Model):  
+    name = models.CharField(max_length=20)
+    file = models.FileField(upload_to='files/legislatures/',null = True)
+
+    def __str__(self):
+        return self.name
+   
+
 class CaseFile(models.Model):
     case_number = models.CharField(max_length=20)
     next_date_of_hearing = models.DateField()
     court_room = models.ForeignKey(CourtRoom,on_delete = models.CASCADE)
-    case_file = models.FileField(upload_to='files/casefiles/',null = True)
+    file = models.FileField(upload_to='files/casefiles/',null = True)
+    case_laws = models.ManyToManyField(CaseLaw)
+    legislatures = models.ManyToManyField(Legislature)
     peshi = models.FileField(upload_to='files/peshi/',null = True)
 
     matter = models.CharField(max_length=30,default="N.A.")
@@ -75,18 +91,3 @@ class CaseFile(models.Model):
     def __str__(self):
         return self.case_number
 
-class CaseLaw(models.Model):
-    name = models.CharField(max_length=20)
-    case_file = models.ForeignKey(CaseFile,on_delete = models.CASCADE)
-    file = models.FileField(upload_to='files/caselaws/',null = True)
-
-    def __str__(self):
-        return self.name + "-" + self.case_file.name
-
-class Legislature(models.Model):  
-    name = models.CharField(max_length=20)
-    case_file = models.ForeignKey(CaseFile,on_delete = models.CASCADE)
-    file = models.FileField(upload_to='files/legislatures/',null = True)
-    def __str__(self):
-        return self.name + "-" + self.case_file.name
-    
