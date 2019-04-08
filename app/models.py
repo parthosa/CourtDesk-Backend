@@ -49,6 +49,7 @@ class Court(models.Model):
 class CourtRoom(models.Model):
     number = models.IntegerField(default=0)
     court = models.ForeignKey(Court,on_delete=models.CASCADE)
+    roster = models.CharField(max_length=20, null = True)
     judges = models.ManyToManyField(Judge)
 
     def __str__(self):
@@ -71,7 +72,6 @@ class Legislature(models.Model):
 
 class CaseFile(models.Model):
     case_number = models.CharField(max_length=20)
-    roster = models.CharField(max_length=20)
     next_date_of_hearing = models.DateField()
     court_room = models.ForeignKey(CourtRoom,on_delete = models.CASCADE)
     file = models.FileField(upload_to='files/casefiles/',null = True)
