@@ -13,13 +13,13 @@ from django.contrib.sessions.models import Session
 
 @csrf_exempt
 def login_user(request):
-    username = request.POST['name']
+    username = request.POST['username']
     password = request.POST['password']
     user = authenticate(username=username, password=password)
     if user:
         user_p=getUserProfile(user)
         login(request,user)
-        return JsonResponse({'status':1, 'message': 'Successfully logged in', 'token': request.session.session_key})
+        return JsonResponse({'status':1, 'message': 'Successfully logged in', 'session_key': request.session.session_key})
     else:
         return JsonResponse({'status': 0, 'message': 'Invalid credentials'})
     
@@ -31,7 +31,8 @@ def get_courtrooms(request):
             session = Session.objects.get(session_key = session_key)
             uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
-        except:
+        except Exception as e:
+            print(f"Error: {e}")
             return JsonResponse({'status':0, 'message':'Kindly login first'})
 
         user_p=getUserProfile(user)
@@ -62,44 +63,54 @@ def get_casefile_list(request):
             session = Session.objects.get(session_key = session_key)
             uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
-        except:
+        except Exception as e:
+            print(f"Error: {e}")
             return JsonResponse({'status':0, 'message':'Kindly login first'})
 
         user_p=getUserProfile(user)
 
-        data = request.data if request.data else request.form
+        data = request.POST
 
         if isinstance(user_p,Judge):
             try:
-                court_room  = user_p.courtroom_set.objects.get(number=int(data['courtNumber']))
-            except:
+                court_room  = user_p.courtroom_set.get(number=int(data['courtNumber']))
+            except Exception as e:
+                print(f"Error: {e}")
                 return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
         else:
             court_room = None
             for judge in user_p.judge_set.all():
                 try:
-                    court_room = judge.courtroom_set.objects.get(number=int(data['courtNumber']))
-                except:
+                    court_room = judge.courtroom_set.get(number=int(data['courtNumber']))
+                except Exception as e:
+                    print(f"Error: {e}")
                     pass
             
         if court_room is None:
             return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
         casefiles_response = []
         try:
-            casefiles = court_room.casefile_set.all().filter(next_date_of_hearing=datetime.date.today())
-            casefiles_response = [{"fileUploaded": casefile.file in not None,
+            casefiles = court_room.casefile_set.all()
+            print([str(casefile) for casefile in casefiles])
+            casefiles_response = [{"pk": casefile.pk,
+                                    "fileUploaded": casefile.file is not None,
                                     "itemNo": str(i),
                                     "caseNo": casefile.case_number,
                                     "matter": casefile.matter,
                                     "party": casefile.party,
                                     "lastHearingDate":casefile.last_date_of_hearing,
+                                    "nextHearingDate":casefile.next_date_of_hearing,
                                     "petitionerAdvocate":casefile.petitioner_advocate,
-                                    "respondentAdvocate":casefile.respondent_advocate,
+                                    "respondentAdvocate":casefile.respondant_advocate,
                                     "notes":casefile.notes,
-                                    "type":casefile.case_type
+                                    "type":casefile.case_type,
+                                    "status":casefile.status,
+                                    "order_status":casefile.order_status,
+                                    "is_urgent":casefile.is_urgent
                                 } for i, casefile in enumerate(casefiles)]
-
-        return JsonResponse({'status' : 1, 'court_rooms': casefiles_response})
+        except Exception as e:
+            print(e)
+        return JsonResponse({'status' : 1, 'casefiles': casefiles_response})
 
 @csrf_exempt
 def get_casefile(request):
@@ -109,45 +120,47 @@ def get_casefile(request):
             session = Session.objects.get(session_key = session_key)
             uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
-        except:
+        except Exception as e:
+            print(f"Error: {e}")
             return JsonResponse({'status':0, 'message':'Kindly login first'})
 
         user_p=getUserProfile(user)
 
-        data = request.data if request.data else request.form
+        data = request.POST
 
         if isinstance(user_p,Judge):
             try:
-                court_room  = user_p.courtroom_set.objects.get(number=int(data['courtNumber']))
-            except:
+                court_room  = user_p.courtroom_set.get(number=int(data['courtNumber']))
+            except Exception as e:
+                print(f"Error: {e}")
                 return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
         else:
             court_room = None
             for judge in user_p.judge_set.all():
                 try:
-                    court_room = judge.courtroom_set.objects.get(number=int(data['courtNumber']))
-                except:
+                    court_room = judge.courtroom_set.get(number=int(data['courtNumber']))
+                except Exception as e:
+                    print(f"Error: {e}")
                     pass
             
         if court_room is None:
             return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
         try:
-            casefile = court_room.casefile_set.get(case_number=data['caseNo'])
-        except:
+            casefile = court_room.casefile_set.get(pk=data['casefile_pk'])
+        except Exception as e:
+            print(f"Error: {e}")
             return JsonResponse({'status':0, 'message':'Casefile does not exist for user'})
         
-        case_laws = [str(case_law) for case_law in casefile.case_laws]
-        legislations = [str(legislature) for legislature in casefile.legislatures]
+        case_laws = [{'name': str(case_law), 'pk': case_law.pk} for case_law in casefile.case_laws.all()]
+        legislations = [{'name': str(legislature), 'pk': legislature.pk} for legislature in casefile.legislatures.all()]
 
-        casefile_response = {"caseNo": casefile.case_number,
-                            "matter": casefile.matter,
-                            "notes":casefile.notes,
-                            "type":casefile.case_type,
+        casefile_response = {"pk": casefile.pk,
+                            "caseNo": casefile.case_number,
                             "caselaws": case_laws,
                             "legislations": legislations
                         }
 
-        return JsonResponse({'status' : 1, 'court_rooms': casefile_response})
+        return JsonResponse({'status' : 1, 'casefile': casefile_response})
 
 @csrf_exempt
 def get_file_stream(request):
@@ -157,47 +170,73 @@ def get_file_stream(request):
             session = Session.objects.get(session_key = session_key)
             uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
-        except:
+        except Exception as e:
+            print(f"Error: {e}")
             return JsonResponse({'status':0, 'message':'Kindly login first'})
 
         user_p=getUserProfile(user)
 
-        data = request.data if request.data else request.form
+        data = request.POST
 
         if isinstance(user_p,Judge):
             try:
-                court_room  = user_p.courtroom_set.objects.get(number=int(data['courtNumber']))
-            except:
+                court_room  = user_p.courtroom_set.get(number=int(data['courtNumber']))
+            except Exception as e:
+                print(f"Error: {e}")
                 return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
         else:
             court_room = None
             for judge in user_p.judge_set.all():
                 try:
-                    court_room = judge.courtroom_set.objects.get(number=int(data['courtNumber']))
-                except:
+                    court_room = judge.courtroom_set.get(number=int(data['courtNumber']))
+                except Exception as e:
+                    print(f"Error: {e}")
                     pass
             
         if court_room is None:
             return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
         try:
-            casefile = court_room.casefile_set.get(case_number=data['caseNo'])
-        except:
-            return JsonResponse({'status':0, 'message':'Casefile does not exist for user'})
+            casefile = court_room.casefile_set.get(pk=data['casefile_pk'])
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Casefile does not exist for CourtRoom'})
         
-        if 'caselaw' in data:
+        if 'caselaw_pk' in data:
             # Retrieve caselaw
             try:
-                case_law = casefile.case_laws.objects.get(name = data['caselaw'])
+                case_law = casefile.case_laws.all().get(pk = data['caselaw_pk'])
                 file = case_law.file
-            except:
-                return JsonResponse({'status':0, 'message':'Caselaw does not exist for user'})
-        elif 'legislation' in data:
+            except Exception as e:
+                print(f"Error: {e}")
+                return JsonResponse({'status':0, 'message':'Caselaw does not exist for Casefile'})
+        elif 'legislation_pk' in data:
             # Retireve legislation
             try:
-                legislature = casefile.legislatures.objects.get(name = data['legislation'])
+                legislature = casefile.legislatures.all().get(pk = data['legislation_pk'])
                 file = legislature.file
-            except:
-                return JsonResponse({'status':0, 'message':'Legislation does not exist for user'})
+            except Exception as e:
+                print(f"Error: {e}")
+                return JsonResponse({'status':0, 'message':'Legislation does not exist for Casefile'})
+        elif 'peshi_pk' in data:
+            # Retireve peshi
+            try:
+                # peshi = casefile.peshi
+                # file = peshi.file
+                peshi = casefile.peshi_char
+                return JsonResponse({'status':1, 'peshi':peshi})
+            except Exception as e:
+                print(f"Error: {e}")
+                return JsonResponse({'status':0, 'message':'Peshi does not exist for Casefile'})
+        elif 'order_pk' in data:
+            # Retireve order
+            try:
+                # order = casefile.order
+                # file = order.file
+                order = casefile.order_char
+                return JsonResponse({'status':1, 'order':order})
+            except Exception as e:
+                print(f"Error: {e}")
+                return JsonResponse({'status':0, 'message':'Order does not exist for Casefile'})
         else:
             # Retrieve casefile
             file = casefile.file
@@ -208,6 +247,106 @@ def get_file_stream(request):
 
         return response
 
+@csrf_exempt
+def update_peshi(request):
+    if request.method == "POST":
+        try:
+            session_key = request.POST['session_key']
+            session = Session.objects.get(session_key = session_key)
+            uid = session.get_decoded().get('_auth_user_id')
+            user = User.objects.get(pk=uid)
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Kindly login first'})
+
+        user_p=getUserProfile(user)
+
+        data = request.POST
+
+        if isinstance(user_p,Judge):
+            try:
+                court_room  = user_p.courtroom_set.get(number=int(data['courtNumber']))
+            except Exception as e:
+                print(f"Error: {e}")
+                return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
+        else:
+            court_room = None
+            for judge in user_p.judge_set.all():
+                try:
+                    court_room = judge.courtroom_set.get(number=int(data['courtNumber']))
+                except Exception as e:
+                    print(f"Error: {e}")
+            
+        if court_room is None:
+            return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
+        try:
+            casefile = court_room.casefile_set.get(pk=data['casefile_pk'])
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Casefile does not exist for CourtRoom'})
+        try:
+            new_peshi_data = data['peshi']
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'No new peshi data found'})
+        try:
+            casefile.peshi_char.update(new_peshi_data)
+        except:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Error occured while saving peshi'})
+
+        return JsonResponse({'status':0, 'message':'Peshi saved successfully'})
+
+@csrf_exempt
+def update_order(request):
+    if request.method == "POST":
+        try:
+            session_key = request.POST['session_key']
+            session = Session.objects.get(session_key = session_key)
+            uid = session.get_decoded().get('_auth_user_id')
+            user = User.objects.get(pk=uid)
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Kindly login first'})
+
+        user_p=getUserProfile(user)
+
+        data = request.POST
+
+        if isinstance(user_p,Judge):
+            try:
+                court_room  = user_p.courtroom_set.get(number=int(data['courtNumber']))
+            except Exception as e:
+                print(f"Error: {e}")
+                return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
+        else:
+            court_room = None
+            for judge in user_p.judge_set.all():
+                try:
+                    court_room = judge.courtroom_set.get(number=int(data['courtNumber']))
+                except Exception as e:
+                    print(f"Error: {e}")
+            
+        if court_room is None:
+            return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
+        try:
+            casefile = court_room.casefile_set.get(pk=data['casefile_pk'])
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Casefile does not exist for CourtRoom'})
+        try:
+            new_order_data = data['order']
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'No new order data found'})
+        try:
+            casefile.order_char.update(new_order_data)
+        except:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Error occured while saving order'})
+
+        return JsonResponse({'status':0, 'message':'Order saved successfully'})
+
 
 
 @csrf_exempt
@@ -215,9 +354,10 @@ def logout_user(request):
     logout(request)
     try:
         session_key = request.POST['session_key']
-        session = Session.objects.get(session_key = session_key)
+        session = Session.all().get(session_key = session_key)
         session.delete()
-    except:
+    except Exception as e:
+        print(f"Error: {e}")
         return JsonResponse({'status': 1, 'message': 'No user was logged in'})
 
     return JsonResponse({'status': 1, 'message': 'You have been successfully logged out'})
@@ -226,10 +366,12 @@ def getUserProfile(user):
     if user:
         try:
             user_p = Judge.objects.get(user = user)
-        except:
+        except Exception as e:
+            print(f"Error: {e}")
             try:
                 user_p = CourtStaff.objects.get(user = user)
-            except:
+            except Exception as e:
+                print(f"Error: {e}")
                 user_p = LR.objects.get(user = user)
     
     return user_p

@@ -72,15 +72,33 @@ class Legislature(models.Model):
 
 class CaseFile(models.Model):
     case_number = models.CharField(max_length=20)
+    court_room = models.ForeignKey(CourtRoom,on_delete = models.CASCADE)
     next_date_of_hearing = models.DateField()
     last_date_of_hearing = models.DateField()
-    court_room = models.ForeignKey(CourtRoom,on_delete = models.CASCADE)
+
     file = models.FileField(upload_to='files/casefiles/',null = True)
+
     case_laws = models.ManyToManyField(CaseLaw)
     legislatures = models.ManyToManyField(Legislature)
+
     peshi = models.FileField(upload_to='files/peshi/',null = True)
+    peshi_char = models.CharField(max_length=2000)
+    order = models.FileField(upload_to='files/order/',null = True)
+    order_char = models.CharField(max_length=2000)
+
+    ORDERSTATUS_CHOICES = (
+    ("DRAFT", "DRAFT"),
+    ("REVIEW", "REVIEW"),
+    ("FINAL", "FINAL")
+    )
+    
+    status = models.CharField(max_length=20)
+    order_status = models.CharField(max_length=15,choices=ORDERSTATUS_CHOICES,default="DRAFT")
+    order_pass_date = models.DateField()
+    is_urgent = models.BooleanField(default=False)
 
     matter = models.CharField(max_length=30,default="N.A.")
+
     petitioner_advocate = models.CharField(max_length=30,default="N.A.")
     respondant_advocate = models.CharField(max_length=30,default="N.A.")
     party = models.CharField(max_length=30,default="N.A.")
