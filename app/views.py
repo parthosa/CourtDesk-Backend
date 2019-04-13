@@ -242,11 +242,10 @@ def get_file_stream(request):
             # Retrieve casefile
             file = casefile.file
  
-        filename = file.name.split('/')[-1]
-        response = HttpResponse(file, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename={filename}'
+        file_name = file.name.split('/')[-1]
+        file_path = file.path
 
-        return response
+        return JsonResponse({'status':1, 'file_name':file_name, 'file_path': file_path})
 
 @csrf_exempt
 def update_peshi(request):
