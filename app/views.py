@@ -107,7 +107,8 @@ def get_casefile_list(request):
                                     "type":casefile.case_type,
                                     "status":casefile.status,
                                     "order_status":casefile.order_status,
-                                    "is_urgent":casefile.is_urgent
+                                    "is_urgent":casefile.is_urgent,
+                                    "file_path" : casefile.file.name.split('/')[-1]
                                 } for i, casefile in enumerate(casefiles)]
         except Exception as e:
             print(e)
@@ -752,7 +753,7 @@ def logout_user(request):
     logout(request)
     try:
         session_key = json.loads(request.body)['session_key']
-        session = Session.all().get(session_key = session_key)
+        session = Session.objects.get(session_key = session_key)
         session.delete()
     except Exception as e:
         print(f"Error: {e}")
