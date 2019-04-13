@@ -20,7 +20,7 @@ def login_user(request):
         user_p=getUserProfile(user)
         login(request,user)
         return JsonResponse({'status':1, 'message': 'Successfully logged in',
-                            'session_key': request.session.session_key, 'type': str(user_p.__class__.__name__)})
+                            'session_key': request.session.session_key, 'type': str(user_p.__class__.__name__), 'name': str(user_p.name)})
     else:
         return JsonResponse({'status': 0, 'message': 'Invalid credentials'})
     
