@@ -108,7 +108,7 @@ def get_casefile_list(request):
                                     "status":casefile.status,
                                     "order_status":casefile.order_status,
                                     "is_urgent":casefile.is_urgent,
-                                    "file_path" : casefile.file
+                                    "file_path" : casefile.file.name.split('/')[-1]
                                 } for i, casefile in enumerate(casefiles)]
         except Exception as e:
             print(e)
