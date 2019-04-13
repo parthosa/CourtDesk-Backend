@@ -107,7 +107,8 @@ def get_casefile_list(request):
                                     "type":casefile.case_type,
                                     "status":casefile.status,
                                     "order_status":casefile.order_status,
-                                    "is_urgent":casefile.is_urgent
+                                    "is_urgent":casefile.is_urgent,
+                                    "file_path" : casefile.file
                                 } for i, casefile in enumerate(casefiles)]
         except Exception as e:
             print(e)
