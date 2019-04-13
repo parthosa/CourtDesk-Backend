@@ -65,14 +65,14 @@ class CourtRoom(models.Model):
 
 class CaseLaw(models.Model):
     name = models.CharField(max_length=20)
-    file = models.FileField(upload_to='files/caselaws/',null = True)
+    file = models.FileField(upload_to='assets/docs/caselaws/',null = True)
 
     def __str__(self):
         return self.name
 
 class Legislature(models.Model):  
     name = models.CharField(max_length=20)
-    file = models.FileField(upload_to='files/legislatures/',null = True)
+    file = models.FileField(upload_to='assets/docs/legislatures/',null = True)
 
     def __str__(self):
         return self.name
@@ -84,14 +84,14 @@ class CaseFile(models.Model):
     next_date_of_hearing = models.DateField()
     last_date_of_hearing = models.DateField()
 
-    file = models.FileField(upload_to='files/casefiles/',null = True)
+    file = models.FileField(upload_to='assets/docs/casefiles/',null = True)
 
     case_laws = models.ManyToManyField(CaseLaw)
     legislatures = models.ManyToManyField(Legislature)
 
-    peshi = models.FileField(upload_to='files/peshi/',null = True)
+    peshi = models.FileField(upload_to='assets/docs/peshi/',null = True)
     peshi_char = models.CharField(max_length=2000)
-    order = models.FileField(upload_to='files/order/',null = True)
+    order = models.FileField(upload_to='assets/docs/order/',null = True)
     order_char = models.CharField(max_length=2000)
 
     ORDERSTATUS_CHOICES = (
