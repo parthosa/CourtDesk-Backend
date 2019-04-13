@@ -44,6 +44,8 @@ class Judge(UserProfile):
     permissions = models.ForeignKey(Permission,on_delete=models.CASCADE,default="JUDGE")
     lr = models.ManyToManyField(LR)
     court_staff = models.ManyToManyField(CourtStaff)
+    restorer = models.ManyToManyField(Restorer)
+    steno = models.ManyToManyField(Steno)
 
 class Court(models.Model):
     name = models.CharField(max_length=15,primary_key=True)
