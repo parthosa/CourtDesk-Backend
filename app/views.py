@@ -634,7 +634,7 @@ def logout_user(request):
     logout(request)
     try:
         session_key = json.loads(request.body)['session_key']
-        session = Session.all().get(session_key = session_key)
+        session = Session.objects.get(session_key = session_key)
         session.delete()
     except Exception as e:
         print(f"Error: {e}")
