@@ -13,8 +13,8 @@ from django.contrib.sessions.models import Session
 
 @csrf_exempt
 def login_user(request):
-    username = request.POST['username']
-    password = request.POST['password']
+    username = json.loads(request.body)['username']
+    password = json.loads(request.body)['password']
     user = authenticate(username=username, password=password)
     if user:
         user_p=getUserProfile(user)
@@ -28,7 +28,7 @@ def login_user(request):
 def get_courtrooms(request):
     if request.method == "POST":
         try:
-            session_key = request.POST['session_key']
+            session_key = json.loads(request.body)['session_key']
             session = Session.objects.get(session_key = session_key)
             uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
@@ -60,7 +60,7 @@ def get_courtrooms(request):
 def get_casefile_list(request):
     if request.method == "POST":
         try:
-            session_key = request.POST['session_key']
+            session_key = json.loads(request.body)['session_key']
             session = Session.objects.get(session_key = session_key)
             uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
@@ -70,7 +70,7 @@ def get_casefile_list(request):
 
         user_p=getUserProfile(user)
 
-        data = request.POST
+        data = json.loads(request.body)
 
         if isinstance(user_p,Judge):
             try:
@@ -117,7 +117,7 @@ def get_casefile_list(request):
 def get_casefile(request):
     if request.method == "POST":
         try:
-            session_key = request.POST['session_key']
+            session_key = json.loads(request.body)['session_key']
             session = Session.objects.get(session_key = session_key)
             uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
@@ -127,7 +127,7 @@ def get_casefile(request):
 
         user_p=getUserProfile(user)
 
-        data = request.POST
+        data = json.loads(request.body)
 
         if isinstance(user_p,Judge):
             try:
@@ -167,7 +167,7 @@ def get_casefile(request):
 def get_file_stream(request):
     if request.method == "POST":
         try:
-            session_key = request.POST['session_key']
+            session_key = json.loads(request.body)['session_key']
             session = Session.objects.get(session_key = session_key)
             uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
@@ -177,7 +177,7 @@ def get_file_stream(request):
 
         user_p=getUserProfile(user)
 
-        data = request.POST
+        data = json.loads(request.body)
 
         if isinstance(user_p,Judge):
             try:
@@ -251,7 +251,7 @@ def get_file_stream(request):
 def update_peshi(request):
     if request.method == "POST":
         try:
-            session_key = request.POST['session_key']
+            session_key = json.loads(request.body)['session_key']
             session = Session.objects.get(session_key = session_key)
             uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
@@ -261,7 +261,7 @@ def update_peshi(request):
 
         user_p=getUserProfile(user)
 
-        data = request.POST
+        data = json.loads(request.body)
 
         if isinstance(user_p,Judge):
             try:
@@ -301,7 +301,7 @@ def update_peshi(request):
 def update_order(request):
     if request.method == "POST":
         try:
-            session_key = request.POST['session_key']
+            session_key = json.loads(request.body)['session_key']
             session = Session.objects.get(session_key = session_key)
             uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
@@ -311,7 +311,7 @@ def update_order(request):
 
         user_p=getUserProfile(user)
 
-        data = request.POST
+        data = json.loads(request.body)
 
         if isinstance(user_p,Judge):
             try:
@@ -352,7 +352,7 @@ def update_order(request):
 def update_is_urgent(request):
     if request.method == "POST":
         try:
-            session_key = request.POST['session_key']
+            session_key = json.loads(request.body)['session_key']
             session = Session.objects.get(session_key = session_key)
             uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
@@ -362,7 +362,7 @@ def update_is_urgent(request):
 
         user_p=getUserProfile(user)
 
-        data = request.POST
+        data = json.loads(request.body)
 
         if isinstance(user_p,Judge):
             try:
@@ -402,7 +402,7 @@ def update_is_urgent(request):
 def update_notes(request):
     if request.method == "POST":
         try:
-            session_key = request.POST['session_key']
+            session_key = json.loads(request.body)['session_key']
             session = Session.objects.get(session_key = session_key)
             uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
@@ -412,7 +412,7 @@ def update_notes(request):
 
         user_p=getUserProfile(user)
 
-        data = request.POST
+        data = json.loads(request.body)
 
         if isinstance(user_p,Judge):
             try:
@@ -452,7 +452,7 @@ def update_notes(request):
 def update_casefile_details(request):
     if request.method == "POST":
         try:
-            session_key = request.POST['session_key']
+            session_key = json.loads(request.body)['session_key']
             session = Session.objects.get(session_key = session_key)
             uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
@@ -462,7 +462,7 @@ def update_casefile_details(request):
 
         user_p=getUserProfile(user)
 
-        data = request.POST
+        data = json.loads(request.body)
 
         if isinstance(user_p,Judge):
             try:
@@ -582,7 +582,7 @@ def update_casefile_details(request):
 def update_order_status(request):
     if request.method == "POST":
         try:
-            session_key = request.POST['session_key']
+            session_key = json.loads(request.body)['session_key']
             session = Session.objects.get(session_key = session_key)
             uid = session.get_decoded().get('_auth_user_id')
             user = User.objects.get(pk=uid)
@@ -592,7 +592,7 @@ def update_order_status(request):
 
         user_p=getUserProfile(user)
 
-        data = request.POST
+        data = json.loads(request.body)
 
         if isinstance(user_p,Judge):
             try:
@@ -633,7 +633,7 @@ def update_order_status(request):
 def logout_user(request):
     logout(request)
     try:
-        session_key = request.POST['session_key']
+        session_key = json.loads(request.body)['session_key']
         session = Session.all().get(session_key = session_key)
         session.delete()
     except Exception as e:
