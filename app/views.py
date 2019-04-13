@@ -96,7 +96,7 @@ def get_casefile_list(request):
             casefiles_response = [{"pk": casefile.pk,
                                     "fileUploaded": casefile.file is not None,
                                     "itemNo": str(i),
-                                    "caseNo": casefile.case_number,
+                                    "caseNumber": casefile.case_number,
                                     "matter": casefile.matter,
                                     "party": casefile.party,
                                     "lastHearingDate":casefile.last_date_of_hearing,
@@ -156,7 +156,7 @@ def get_casefile(request):
         legislations = [{'name': str(legislature), 'pk': legislature.pk} for legislature in casefile.legislatures.all()]
 
         casefile_response = {"pk": casefile.pk,
-                            "caseNo": casefile.case_number,
+                            "caseNumber": casefile.case_number,
                             "caselaws": case_laws,
                             "legislations": legislations
                         }
@@ -246,6 +246,124 @@ def get_file_stream(request):
         file_path = file.path
 
         return JsonResponse({'status':1, 'file_name':file_name, 'file_path': file_path})
+
+@csrf_exempt
+def add_file(request):
+    if request.method == "POST":
+        try:
+            session_key = json.loads(request.body)['session_key']
+            session = Session.objects.get(session_key = session_key)
+            uid = session.get_decoded().get('_auth_user_id')
+            user = User.objects.get(pk=uid)
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Kindly login first'})
+
+        user_p=getUserProfile(user)
+
+        data = json.loads(request.body)
+
+        if isinstance(user_p,Judge):
+            try:
+                court_room  = user_p.courtroom_set.get(number=int(data['courtNumber']))
+            except Exception as e:
+                print(f"Error: {e}")
+                return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
+        else:
+            court_room = None
+            for judge in user_p.judge_set.all():
+                try:
+                    court_room = judge.courtroom_set.get(number=int(data['courtNumber']))
+                except Exception as e:
+                    print(f"Error: {e}")
+                    pass
+            
+        if court_room is None:
+            return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
+        
+        files = request.FILES
+
+        try:
+            casefile = court_room.casefile_set.get(pk=data['casefile_pk'])
+        except Exception as e:
+            if 'casefile' in files:
+                try:
+                    case_number = data['casefile']['caseNumber']
+                    matter = data['casefile']['matter']
+                    party = data['casefile']['party']
+                    last_date_of_hearing = data['casefile']['lastHearingDate']
+                    next_date_of_hearing = data['casefile']['nextHearingDate']
+                    petitioner_advocate = data['casefile']['petitionerAdvocate']
+                    respondant_advocate = data['casefile']['respondentAdvocate']
+                    type = data['casefile']['type']
+                    status = data['casefile']['status']
+                    is_urgent = data['casefile']['is_urgent']
+                    file = files['casefile']
+                    casefile = CaseFile.objects.get_or_create(case_number=case_number,
+                                                              matter=matter,
+                                                              party=party,
+                                                              last_date_of_hearing=last_date_of_hearing,
+                                                              next_date_of_hearing=next_date_of_hearing,
+                                                              petitioner_advocate=petitioner_advocate,
+                                                              respondant_advocate=respondant_advocate,
+                                                              type=type,
+                                                              status=status,
+                                                              is_urgent=is_urgent,
+                                                              file=file,
+                                                              court_room=court_room)
+                    return JsonResponse({'status':1, 'message':'CaseFile saved successfully.'})
+                except Exception as e:
+                    print(f"Error: {e}")
+                    return JsonResponse({'status':0, 'message':'Error occured while saving CaseFile'})
+
+        if 'caselaw' in files:
+            # Retrieve caselaw
+            try:
+                name = data['caselaw']['name']
+                file = files['caselaw']
+                caselaw = CaseLaw.objects.get_or_create(file=file,
+                                                          name=name)
+                casefile.case_laws.add(caselaw)
+                return JsonResponse({'status':1, 'message':'CaseLaw saved successfully.'})
+            except Exception as e:
+                print(f"Error: {e}")
+                return JsonResponse({'status':0, 'message':'Error occured while saving Caselaw'})
+        elif 'legislation' in files:
+            # Retrieve legislation
+            try:
+                name = data['legislation']['name']
+                file = files['legislation']
+                legislation = Legislature.objects.get_or_create(file=file,
+                                                          name=name)
+                casefile.case_laws.add(legislation)
+                return JsonResponse({'status':1, 'message':'Legislation saved successfully.'})
+            except Exception as e:
+                print(f"Error: {e}")
+                return JsonResponse({'status':0, 'message':'Error occured while saving Legislation'})
+        # elif 'peshi' in files:
+        #     # Retireve peshi
+        #     try:
+        #         # peshi = casefile.peshi
+        #         # file = peshi.file
+        #         peshi = casefile.peshi_char
+        #         return JsonResponse({'status':1, 'peshi':peshi})
+        #     except Exception as e:
+        #         print(f"Error: {e}")
+        #         return JsonResponse({'status':0, 'message':'Peshi does not exist for Casefile'})
+        # elif 'order' in files:
+        #     # Retireve order
+        #     try:
+        #         # order = casefile.order
+        #         # file = order.file
+        #         order = casefile.order_char
+        #         return JsonResponse({'status':1, 'order':order})
+        #     except Exception as e:
+        #         print(f"Error: {e}")
+        #         return JsonResponse({'status':0, 'message':'Order does not exist for Casefile'})
+        else:
+            # Retrieve casefile
+            return JsonResponse({'status':0, 'message':'No relevant file found'})
+        return JsonResponse({'status':0, 'message':'Don\'t know how we reached this response. Debug. Have fun.'})
 
 @csrf_exempt
 def update_peshi(request):
@@ -486,15 +604,15 @@ def update_casefile_details(request):
             print(f"Error: {e}")
             return JsonResponse({'status':0, 'message':'Casefile does not exist for CourtRoom'})
         try:
-            new_case_number_data = data['caseNo']
+            new_case_number_data = data['caseNumber']
         except Exception as e:
             print(f"Error: {e}")
-            return JsonResponse({'status':0, 'message':'No new caseNo data found'})
+            return JsonResponse({'status':0, 'message':'No new caseNumber data found'})
         try:
             casefile.case_number.update(new_case_number_data)
         except:
             print(f"Error: {e}")
-            return JsonResponse({'status':0, 'message':'Error occured while saving caseNo'})
+            return JsonResponse({'status':0, 'message':'Error occured while saving caseNumber'})
 
         try:
             new_next_date_of_hearing_data = data['nextHearingDate']
@@ -575,7 +693,7 @@ def update_casefile_details(request):
             print(f"Error: {e}")
             return JsonResponse({'status':0, 'message':'Error occured while saving type'})
 
-        return JsonResponse({'status':0, 'message':'caseNo saved successfully'})
+        return JsonResponse({'status':0, 'message':'caseNumber saved successfully'})
 
 
 @csrf_exempt

@@ -14,5 +14,6 @@ urlpatterns = [
     path('update_is_urgent/', views.update_is_urgent, name='update_is_urgent'),
     path('update_casefile_details/', views.update_casefile_details, name='update_casefile_details'),
     path('update_notes/', views.update_notes, name='update_notes'),
-    path('update_order_status/', views.update_order_status, name='update_order_status')
+    path('update_order_status/', views.update_order_status, name='update_order_status'),
+    path('add_file/', views.add_file, name='add_file')
     ]
