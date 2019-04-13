@@ -4,6 +4,8 @@ from app.models import *
 admin.site.register(Court)
 admin.site.register(CourtRoom)
 admin.site.register(Judge)
+admin.site.register(Steno)
+admin.site.register(Restorer)
 admin.site.register(CourtStaff)
 admin.site.register(LR)
 admin.site.register(Legislature)
