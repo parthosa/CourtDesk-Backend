@@ -31,6 +31,12 @@ class UserProfile(models.Model):
 class LR(UserProfile):
     permissions = models.ForeignKey(Permission,on_delete=models.CASCADE,default="LR")
 
+class Restorer(UserProfile):
+    permissions = models.ForeignKey(Permission,on_delete=models.CASCADE,default="LR")
+
+class Steno(UserProfile):
+    permissions = models.ForeignKey(Permission,on_delete=models.CASCADE,default="LR")
+
 class CourtStaff(UserProfile):
     permissions = models.ForeignKey(Permission,on_delete=models.CASCADE,default="CS")
 
@@ -103,7 +109,7 @@ class CaseFile(models.Model):
     respondant_advocate = models.CharField(max_length=30,default="N.A.")
     party = models.CharField(max_length=30,default="N.A.")
 
-    notes = models.CharField(max_length=300,default="N.A.")
+    notes = models.CharField(max_length=2000,default="N.A.")
 
     CASETYPE_CHOICES = (
     ("SUPPLEMENTARY", "Supplementary"),

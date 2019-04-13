@@ -19,7 +19,8 @@ def login_user(request):
     if user:
         user_p=getUserProfile(user)
         login(request,user)
-        return JsonResponse({'status':1, 'message': 'Successfully logged in', 'session_key': request.session.session_key})
+        return JsonResponse({'status':1, 'message': 'Successfully logged in',
+                            'session_key': request.session.session_key, 'type': str(user_p.__class__)})
     else:
         return JsonResponse({'status': 0, 'message': 'Invalid credentials'})
     
@@ -347,6 +348,286 @@ def update_order(request):
 
         return JsonResponse({'status':0, 'message':'Order saved successfully'})
 
+
+@csrf_exempt
+def update_is_urgent(request):
+    if request.method == "POST":
+        try:
+            session_key = request.POST['session_key']
+            session = Session.objects.get(session_key = session_key)
+            uid = session.get_decoded().get('_auth_user_id')
+            user = User.objects.get(pk=uid)
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Kindly login first'})
+
+        user_p=getUserProfile(user)
+
+        data = request.POST
+
+        if isinstance(user_p,Judge):
+            try:
+                court_room  = user_p.courtroom_set.get(number=int(data['courtNumber']))
+            except Exception as e:
+                print(f"Error: {e}")
+                return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
+        else:
+            court_room = None
+            for judge in user_p.judge_set.all():
+                try:
+                    court_room = judge.courtroom_set.get(number=int(data['courtNumber']))
+                except Exception as e:
+                    print(f"Error: {e}")
+            
+        if court_room is None:
+            return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
+        try:
+            casefile = court_room.casefile_set.get(pk=data['casefile_pk'])
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Casefile does not exist for CourtRoom'})
+        try:
+            new_is_urgent_data = data['is_urgent']
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'No new is_urgent data found'})
+        try:
+            casefile.is_urgent.update(new_is_urgent_data)
+        except:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Error occured while saving is_urgent'})
+
+        return JsonResponse({'status':0, 'message':'is_urgent saved successfully'})
+
+@csrf_exempt
+def update_notes(request):
+    if request.method == "POST":
+        try:
+            session_key = request.POST['session_key']
+            session = Session.objects.get(session_key = session_key)
+            uid = session.get_decoded().get('_auth_user_id')
+            user = User.objects.get(pk=uid)
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Kindly login first'})
+
+        user_p=getUserProfile(user)
+
+        data = request.POST
+
+        if isinstance(user_p,Judge):
+            try:
+                court_room  = user_p.courtroom_set.get(number=int(data['courtNumber']))
+            except Exception as e:
+                print(f"Error: {e}")
+                return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
+        else:
+            court_room = None
+            for judge in user_p.judge_set.all():
+                try:
+                    court_room = judge.courtroom_set.get(number=int(data['courtNumber']))
+                except Exception as e:
+                    print(f"Error: {e}")
+            
+        if court_room is None:
+            return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
+        try:
+            casefile = court_room.casefile_set.get(pk=data['casefile_pk'])
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Casefile does not exist for CourtRoom'})
+        try:
+            new_notes_data = data['notes']
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'No new notes data found'})
+        try:
+            casefile.notes.update(new_notes_data)
+        except:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Error occured while saving notes'})
+
+        return JsonResponse({'status':0, 'message':'notes saved successfully'})
+
+@csrf_exempt
+def update_casefile_details(request):
+    if request.method == "POST":
+        try:
+            session_key = request.POST['session_key']
+            session = Session.objects.get(session_key = session_key)
+            uid = session.get_decoded().get('_auth_user_id')
+            user = User.objects.get(pk=uid)
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Kindly login first'})
+
+        user_p=getUserProfile(user)
+
+        data = request.POST
+
+        if isinstance(user_p,Judge):
+            try:
+                court_room  = user_p.courtroom_set.get(number=int(data['courtNumber']))
+            except Exception as e:
+                print(f"Error: {e}")
+                return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
+        else:
+            court_room = None
+            for judge in user_p.judge_set.all():
+                try:
+                    court_room = judge.courtroom_set.get(number=int(data['courtNumber']))
+                except Exception as e:
+                    print(f"Error: {e}")
+            
+        if court_room is None:
+            return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
+        try:
+            casefile = court_room.casefile_set.get(pk=data['casefile_pk'])
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Casefile does not exist for CourtRoom'})
+        try:
+            new_case_number_data = data['caseNo']
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'No new caseNo data found'})
+        try:
+            casefile.case_number.update(new_case_number_data)
+        except:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Error occured while saving caseNo'})
+
+        try:
+            new_next_date_of_hearing_data = data['nextHearingDate']
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'No new nextHearingDate data found'})
+        try:
+            new_last_date_of_hearing_data = casefile.last_date_of_hearing
+            casefile.next_date_of_hearing.update(new_next_date_of_hearing_data)
+            casefile.last_date_of_hearing.update(new_last_date_of_hearing_data)
+        except:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Error occured while saving nextHearingDate'})
+
+        try:
+            new_status_data = data['status']
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'No new status data found'})
+        try:
+            casefile.status.update(new_status_data)
+        except:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Error occured while saving status'})
+
+        try:
+            new_party_data = data['party']
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'No new party data found'})
+        try:
+            casefile.party.update(new_party_data)
+        except:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Error occured while saving party'})
+
+        try:
+            new_petitioner_advocate_data = data['petitionerAdvocate']
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'No new petitionerAdvocate data found'})
+        try:
+            casefile.petitioner_advocate.update(new_petitioner_advocate_data)
+        except:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Error occured while saving petitionerAdvocate'})
+
+        try:
+            new_respondant_advocate_data = data['respondentAdvocate']
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'No new respondentAdvocate data found'})
+        try:
+            casefile.respondant_advocate.update(new_respondant_advocate_data)
+        except:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Error occured while saving respondentAdvocate'})
+
+        try:
+            new_status_data = data['status']
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'No new status data found'})
+        try:
+            casefile.status.update(new_status_data)
+        except:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Error occured while saving notes'})
+
+        try:
+            new_type_data = data['type']
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'No new type data found'})
+        try:
+            casefile.type.update(new_type_data)
+        except:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Error occured while saving type'})
+
+        return JsonResponse({'status':0, 'message':'caseNo saved successfully'})
+
+
+@csrf_exempt
+def update_order_status(request):
+    if request.method == "POST":
+        try:
+            session_key = request.POST['session_key']
+            session = Session.objects.get(session_key = session_key)
+            uid = session.get_decoded().get('_auth_user_id')
+            user = User.objects.get(pk=uid)
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Kindly login first'})
+
+        user_p=getUserProfile(user)
+
+        data = request.POST
+
+        if isinstance(user_p,Judge):
+            try:
+                court_room  = user_p.courtroom_set.get(number=int(data['courtNumber']))
+            except Exception as e:
+                print(f"Error: {e}")
+                return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
+        else:
+            court_room = None
+            for judge in user_p.judge_set.all():
+                try:
+                    court_room = judge.courtroom_set.get(number=int(data['courtNumber']))
+                except Exception as e:
+                    print(f"Error: {e}")
+            
+        if court_room is None:
+            return JsonResponse({'status':0, 'message':'Court Room does not exist for user'})
+        try:
+            casefile = court_room.casefile_set.get(pk=data['casefile_pk'])
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Casefile does not exist for CourtRoom'})
+        try:
+            new_order_status_data = data['order_status']
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'No new order_status data found'})
+        try:
+            casefile.order_status.update(new_order_status_data)
+        except:
+            print(f"Error: {e}")
+            return JsonResponse({'status':0, 'message':'Error occured while saving order_status'})
+
+        return JsonResponse({'status':0, 'message':'order_status saved successfully'})
 
 
 @csrf_exempt
